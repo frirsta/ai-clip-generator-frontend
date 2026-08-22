@@ -27,13 +27,14 @@ export default function ClipResultsGrid({ clips, sourceDurationSeconds, onGenera
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {clips.map((clip) => (
+        {clips.map((clip, index) => (
           <ClipCard
             key={clip.id}
             clip={clip}
             sourceDurationSeconds={sourceDurationSeconds}
             onGenerate={onGenerate}
             onOpenPreview={onOpenPreview}
+            isTopPick={index === 0}
           />
         ))}
       </div>

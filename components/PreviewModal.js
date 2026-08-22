@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { formatDuration, formatTimecode } from '@/lib/format';
 
 export default function PreviewModal({ clip, onClose }) {
   useEffect(() => {
@@ -26,7 +27,14 @@ export default function PreviewModal({ clip, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-ink-700 px-5 py-3.5">
-          <h3 className="font-display text-sm font-medium text-text-primary">{clip.title}</h3>
+          <div>
+            <h3 className="font-display text-sm font-medium text-text-primary">{clip.title}</h3>
+            <p className="tnum mt-1 font-mono text-xs text-text-tertiary">
+              {formatTimecode(clip.startSeconds)} → {formatTimecode(clip.endSeconds)}
+              <span className="text-ink-600"> · </span>
+              {formatDuration(clip.endSeconds - clip.startSeconds)}
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}

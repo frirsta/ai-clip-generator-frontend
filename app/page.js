@@ -1,261 +1,157 @@
-"use client";
+'use client';
 
-import { useCallback, useState } from "react";
+import { useCallback, useState } from 'react';
+import TopBar from '@/components/TopBar';
+import UploadZone from '@/components/UploadZone';
+import ProcessingPanel from '@/components/ProcessingPanel';
+import ClipResultsGrid from '@/components/ClipResultsGrid';
+import PreviewModal from '@/components/PreviewModal';
+import ErrorBanner from '@/components/ErrorBanner';
+import { processVideo, generateClip, PROCESSING_STEPS } from '@/lib/api';
 
-import TopBar from "@/components/TopBar";
-import UploadZone from "@/components/UploadZone";
-import ProcessingPanel from "@/components/ProcessingPanel";
-import ClipResultsGrid from "@/components/ClipResultsGrid";
-import PreviewModal from "@/components/PreviewModal";
-import ErrorBanner from "@/components/ErrorBanner";
+const STEP_ORDER = PROCESSING_STEPS.map((step) => step.id);
 
-import { processVideo, generateClip } from "@/lib/api";
+// 'upload' → 'processing' → 'results'
+export default function Page() {
+  const [phase, setPhase] = useState('upload');
 
-export default function Home() {
   const [file, setFile] = useState(null);
-
-  const [clips, setClips] = useState([]);
-
-  const [videoKey, setVideoKey] = useState("");
-  const [videoDuration, setVideoDuration] = useState(0);
 
   const [activeStepId, setActiveStepId] = useState(null);
   const [completedStepIds, setCompletedStepIds] = useState([]);
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  // R2 object key for the ORIGINAL uploaded video — required by the clip
+  // worker later. Not a "video ID"; the backend has no such concept.
+  const [videoKey, setVideoKey] = useState(null);
+  const [sourceDurationSeconds, setSourceDurationSeconds] = useState(null);
 
-  const [error, setError] = useState("");
-
+  const [clips, setClips] = useState([]);
   const [previewClip, setPreviewClip] = useState(null);
+
+  const [pipelineError, setPipelineError] = useState(null);
 
   const handleFileSelected = useCallback((selectedFile) => {
     setFile(selectedFile);
-    setError("");
-    setClips([]);
-    setVideoKey("");
-    setVideoDuration(0);
-    setActiveStepId(null);
-    setCompletedStepIds([]);
-    setPreviewClip(null);
+    setPipelineError(null);
   }, []);
 
-  const handleClear = useCallback(() => {
+  const handleClearFile = useCallback(() => {
     setFile(null);
-    setClips([]);
-    setVideoKey("");
-    setVideoDuration(0);
-    setActiveStepId(null);
-    setCompletedStepIds([]);
-    setError("");
-    setPreviewClip(null);
+    setPipelineError(null);
   }, []);
 
   const handleAnalyze = useCallback(async () => {
-    if (!file || isProcessing) {
-      return;
-    }
+    if (!file) return;
 
-    setIsProcessing(true);
-    setError("");
-    setClips([]);
-    setPreviewClip(null);
+    setPipelineError(null);
     setCompletedStepIds([]);
-    setActiveStepId(null);
+    setActiveStepId(STEP_ORDER[0]);
+    setPhase('processing');
 
     try {
       const result = await processVideo(file, (stepId) => {
-        setActiveStepId((previousStepId) => {
-          if (previousStepId && previousStepId !== stepId) {
-            setCompletedStepIds((previous) => {
-              if (previous.includes(previousStepId)) {
-                return previous;
-              }
-
-              return [...previous, previousStepId];
-            });
-          }
-
-          return stepId;
-        });
+        const stepIndex = STEP_ORDER.indexOf(stepId);
+        setCompletedStepIds(STEP_ORDER.slice(0, Math.max(stepIndex, 0)));
+        setActiveStepId(stepId);
       });
 
-      // Mark the final step as complete.
-      setCompletedStepIds(["upload", "transcribe", "visual", "suggest"]);
+      const rankedClips = [...result.clips].sort((a, b) => b.score - a.score);
 
-      setActiveStepId(null);
-
-      setClips(result.clips);
-      setVideoKey(result.videoKey);
-      setVideoDuration(result.videoDuration);
+      setVideoKey(result.key);
+      setSourceDurationSeconds(result.videoDuration);
+      setClips(rankedClips);
+      setPhase('results');
     } catch (err) {
-      console.error("PROCESSING ERROR:", err);
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong while processing the video.",
-      );
-    } finally {
-      setIsProcessing(false);
+      console.error('Video processing pipeline failed:', err);
+      setPipelineError(err.message || 'Something went wrong while analyzing this video.');
+      setPhase('upload');
     }
-  }, [file, isProcessing]);
+  }, [file]);
 
   const handleGenerate = useCallback(
     async (clipId) => {
-      const clip = clips.find((item) => item.id === clipId);
+      const clip = clips.find((c) => c.id === clipId);
+      if (!clip || !videoKey) return;
 
-      if (!clip) {
-        return;
-      }
-
-      setError("");
-
-      setClips((previous) =>
-        previous.map((item) =>
-          item.id === clipId
-            ? {
-                ...item,
-                status: "generating",
-                errorMessage: null,
-              }
-            : item,
-        ),
+      setClips((current) =>
+        current.map((c) =>
+          c.id === clipId ? { ...c, status: 'generating', errorMessage: null } : c
+        )
       );
 
       try {
-        const result = await generateClip(clip, videoKey);
-
-        setClips((previous) =>
-          previous.map((item) =>
-            item.id === clipId
-              ? {
-                  ...item,
-                  status: "ready",
-                  videoUrl: result.videoUrl,
-                  downloadUrl: result.downloadUrl,
-                  errorMessage: null,
-                }
-              : item,
-          ),
+        const { videoUrl, downloadUrl } = await generateClip(videoKey, clip);
+        setClips((current) =>
+          current.map((c) =>
+            c.id === clipId ? { ...c, status: 'ready', videoUrl, downloadUrl } : c
+          )
         );
       } catch (err) {
-        console.error("CLIP GENERATION ERROR:", err);
-
-        const message =
-          err instanceof Error ? err.message : "Could not generate the clip.";
-
-        setClips((previous) =>
-          previous.map((item) =>
-            item.id === clipId
-              ? {
-                  ...item,
-                  status: "error",
-                  errorMessage: message,
-                }
-              : item,
-          ),
+        console.error(`Clip generation failed for ${clipId}:`, err);
+        setClips((current) =>
+          current.map((c) =>
+            c.id === clipId
+              ? { ...c, status: 'error', errorMessage: err.message || 'This clip could not be generated.' }
+              : c
+          )
         );
       }
     },
-    [clips, videoKey],
+    [clips, videoKey]
   );
 
-  const handleOpenPreview = useCallback((clip) => {
-    setPreviewClip(clip);
-  }, []);
-
-  const handleClosePreview = useCallback(() => {
-    setPreviewClip(null);
-  }, []);
-
   const handleStartOver = useCallback(() => {
+    setPhase('upload');
     setFile(null);
+    setVideoKey(null);
+    setSourceDurationSeconds(null);
     setClips([]);
-    setVideoKey("");
-    setVideoDuration(0);
-    setActiveStepId(null);
+    setPipelineError(null);
     setCompletedStepIds([]);
-    setError("");
-    setPreviewClip(null);
+    setActiveStepId(null);
   }, []);
 
   return (
-    <div className="min-h-screen bg-ink-950 text-text-primary">
+    <div className="min-h-screen bg-ink-950">
       <TopBar />
 
-      <main className="mx-auto w-full max-w-5xl px-6 py-12">
-        {error && (
-          <div className="mb-6">
-            <ErrorBanner
-              message={error}
-              onDismiss={() => setError("")}
-              onRetry={file && !isProcessing ? handleAnalyze : undefined}
-            />
-          </div>
-        )}
-
-        {!isProcessing && clips.length === 0 && (
-          <section>
-            <div className="mb-8">
-              <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">
-                AI video clipping
-              </p>
-
-              <h1 className="mt-3 max-w-2xl font-display text-3xl font-medium tracking-tight text-text-primary sm:text-4xl">
-                Turn long-form video into its strongest moments.
-              </h1>
-
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-text-secondary">
-                Upload a video and let AI analyze the audio and visuals to find
-                the moments worth turning into short-form content.
-              </p>
-            </div>
-
+      <main className="mx-auto max-w-5xl px-6 py-12">
+        {phase === 'upload' && (
+          <div className="mx-auto flex max-w-xl flex-col gap-5">
+            {pipelineError && (
+              <ErrorBanner
+                message={pipelineError}
+                onRetry={file ? handleAnalyze : undefined}
+                onDismiss={() => setPipelineError(null)}
+              />
+            )}
             <UploadZone
               file={file}
               onFileSelected={handleFileSelected}
               onAnalyze={handleAnalyze}
-              onClear={handleClear}
+              onClear={handleClearFile}
             />
-          </section>
+          </div>
         )}
 
-        {isProcessing && (
-          <section className="mx-auto max-w-2xl">
-            <div className="mb-8">
-              <p className="font-mono text-xs uppercase tracking-[0.16em] text-accent">
-                AI analysis
-              </p>
-
-              <h1 className="mt-3 font-display text-3xl font-medium tracking-tight text-text-primary">
-                Finding your best moments.
-              </h1>
-
-              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                We are analyzing the video, transcript and visual events
-                together.
-              </p>
-            </div>
-
-            <ProcessingPanel
-              activeStepId={activeStepId}
-              completedStepIds={completedStepIds}
-            />
-          </section>
+        {phase === 'processing' && (
+          <div className="mx-auto max-w-xl">
+            <ProcessingPanel activeStepId={activeStepId} completedStepIds={completedStepIds} />
+          </div>
         )}
 
-        {!isProcessing && clips.length > 0 && (
+        {phase === 'results' && (
           <ClipResultsGrid
             clips={clips}
-            sourceDurationSeconds={videoDuration}
+            sourceDurationSeconds={sourceDurationSeconds || 1}
             onGenerate={handleGenerate}
-            onOpenPreview={handleOpenPreview}
+            onOpenPreview={setPreviewClip}
             onStartOver={handleStartOver}
           />
         )}
       </main>
 
-      <PreviewModal clip={previewClip} onClose={handleClosePreview} />
+      <PreviewModal clip={previewClip} onClose={() => setPreviewClip(null)} />
     </div>
   );
 }

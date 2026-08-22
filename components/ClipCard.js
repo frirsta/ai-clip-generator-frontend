@@ -3,11 +3,15 @@
 import ScoreMeter from './ScoreMeter';
 import { formatDuration, formatTimecode } from '@/lib/format';
 
-export default function ClipCard({ clip, sourceDurationSeconds, onGenerate, onOpenPreview }) {
+export default function ClipCard({ clip, sourceDurationSeconds, onGenerate, onOpenPreview, isTopPick }) {
   const duration = clip.endSeconds - clip.startSeconds;
 
   return (
-    <article className="animate-fadeUp flex flex-col overflow-hidden rounded-lg border border-ink-600 bg-ink-850">
+    <article
+      className={`animate-fadeUp flex flex-col overflow-hidden rounded-lg border bg-ink-850 ${
+        isTopPick ? 'border-accent/50' : 'border-ink-600'
+      }`}
+    >
       <ClipMedia
         clip={clip}
         sourceDurationSeconds={sourceDurationSeconds}
@@ -15,6 +19,11 @@ export default function ClipCard({ clip, sourceDurationSeconds, onGenerate, onOp
       />
 
       <div className="flex flex-1 flex-col p-5">
+        {isTopPick && (
+          <p className="mb-2 font-mono text-[11px] font-medium uppercase tracking-wider text-accent">
+            Top pick
+          </p>
+        )}
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-display text-[15px] font-medium leading-snug text-text-primary">
             {clip.title}
@@ -88,6 +97,7 @@ function ClipMedia({ clip, sourceDurationSeconds, onOpenPreview }) {
           <PositionBar
             startSeconds={clip.startSeconds}
             endSeconds={clip.endSeconds}
+            visualEventTime={clip.visualEventTime}
             sourceDurationSeconds={sourceDurationSeconds}
             muted={clip.status === 'generating'}
           />
@@ -97,10 +107,12 @@ function ClipMedia({ clip, sourceDurationSeconds, onOpenPreview }) {
   );
 }
 
-function PositionBar({ startSeconds, endSeconds, sourceDurationSeconds, muted }) {
+function PositionBar({ startSeconds, endSeconds, visualEventTime, sourceDurationSeconds, muted }) {
   const total = Math.max(sourceDurationSeconds, endSeconds);
   const left = (startSeconds / total) * 100;
   const width = Math.max(((endSeconds - startSeconds) / total) * 100, 1.5);
+  const eventLeft =
+    Number.isFinite(visualEventTime) ? (visualEventTime / total) * 100 : null;
 
   return (
     <div className="w-full max-w-[220px]">
@@ -109,6 +121,13 @@ function PositionBar({ startSeconds, endSeconds, sourceDurationSeconds, muted })
           className={`absolute inset-y-0 rounded-full ${muted ? 'bg-text-tertiary' : 'bg-accent'}`}
           style={{ left: `${left}%`, width: `${width}%` }}
         />
+        {eventLeft !== null && !muted && (
+          <span
+            className="absolute inset-y-0 w-[2px] -translate-x-1/2 bg-text-primary"
+            style={{ left: `${eventLeft}%` }}
+            title="Key visual event"
+          />
+        )}
       </div>
       <p className="mt-3 text-center font-mono text-[11px] text-text-tertiary">
         position in source video
