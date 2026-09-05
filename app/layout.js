@@ -20,8 +20,8 @@ const monoFont = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: 'AI Clip Generator',
-  description: 'Turn long-form video into the clips worth posting.',
+  title: 'MightyClipper',
+  description: 'AI-powered clipping for creators.',
 };
 
 export default function RootLayout({ children }) {

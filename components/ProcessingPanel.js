@@ -8,7 +8,11 @@ import { PROCESSING_STEPS } from '@/lib/api';
  */
 export default function ProcessingPanel({ activeStepId, completedStepIds }) {
   return (
-    <div className="animate-fadeUp rounded-lg border border-ink-600 bg-ink-850 p-8">
+    <div
+      className="animate-fadeUp rounded-lg border border-ink-600 bg-ink-850 p-8"
+      role="status"
+      aria-live="polite"
+    >
       <div className="flex items-center gap-3">
         <span className="h-1.5 w-1.5 animate-pulseDot rounded-full bg-accent" />
         <h2 className="font-display text-base font-medium text-text-primary">
@@ -32,7 +36,7 @@ export default function ProcessingPanel({ activeStepId, completedStepIds }) {
                 {!isLast && (
                   <span
                     className={`w-px flex-1 ${
-                      isDone ? 'bg-accent/40' : 'bg-ink-600'
+                      isDone ? 'bg-success/40' : 'bg-ink-600'
                     }`}
                     style={{ minHeight: '28px' }}
                   />
@@ -65,11 +69,11 @@ export default function ProcessingPanel({ activeStepId, completedStepIds }) {
 function StepMarker({ isDone, isActive }) {
   if (isDone) {
     return (
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success">
         <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
           <path
             d="M3.5 8.5l3 3 6-6.5"
-            stroke="#0B0C0E"
+            stroke="#090A0D"
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"

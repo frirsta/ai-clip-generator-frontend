@@ -8,7 +8,15 @@
   }
 
   body {
-    @apply bg-ink-950 text-text-primary font-sans antialiased;
+    @apply text-text-primary font-sans antialiased;
+    background-color: theme('colors.ink.950');
+    /* Extremely subtle ambient brand glow — depth, not decoration. */
+    background-image: radial-gradient(
+      60% 42% at 50% -8%,
+      rgba(102, 133, 255, 0.05),
+      transparent 70%
+    );
+    background-repeat: no-repeat;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 

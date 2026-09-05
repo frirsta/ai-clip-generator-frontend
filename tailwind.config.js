@@ -7,32 +7,43 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Neutral scale — ~90% of the interface lives here.
         ink: {
-          950: '#0B0C0E', // app background
-          900: '#101114',
-          850: '#141519', // card surface
-          800: '#1B1D22', // raised surface (inputs, inner panels)
-          700: '#232529', // soft border
-          600: '#2A2D33', // border
-          500: '#3A3D44',
+          950: '#090A0D', // app background
+          900: '#0D0F13', // recessed media wells (clip thumbnails before render)
+          850: '#111318', // primary surface — cards, panels
+          800: '#171A20', // elevated surface — inputs, secondary buttons
+          700: '#1B1E25', // subtle dividers / inner tracks
+          600: '#252932', // border
+          500: '#353A45', // border — hover
         },
         text: {
-          primary: '#EDEEF0',
-          secondary: '#9297A1',
-          tertiary: '#63676F',
+          primary: '#F4F4F6',
+          secondary: '#A6A9B2',
+          tertiary: '#686C76',
         },
+        // Mighty Blue — used intentionally, not decoratively: brand, primary
+        // actions, focus/active states, and anything AI/progress-related.
         accent: {
-          DEFAULT: '#5B7FFF',
-          dim: '#31406E',
-          soft: '#1B2440',
+          DEFAULT: '#6685FF',
+          hover: '#7D98FF',
+          highlight: '#B8C3FF',
+        },
+        // Champagne — reserved for the Top Pick / exceptional-moment treatment.
+        // Never a background, never a button.
+        premium: {
+          DEFAULT: '#C8B68A',
         },
         danger: {
-          DEFAULT: '#F2555A',
-          soft: '#3A1E20',
+          DEFAULT: '#F05A60',
+          soft: '#2B1518',
         },
         success: {
-          DEFAULT: '#34D399',
-          soft: '#123028',
+          DEFAULT: '#3DD6A0',
+          soft: '#0F2B24',
+        },
+        warning: {
+          DEFAULT: '#E8B65A',
         },
       },
       fontFamily: {

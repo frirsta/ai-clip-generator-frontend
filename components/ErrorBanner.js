@@ -1,6 +1,9 @@
 export default function ErrorBanner({ message, onRetry, onDismiss }) {
   return (
-    <div className="animate-fadeUp flex items-start justify-between gap-4 rounded-lg border border-danger/30 bg-danger-soft px-5 py-4">
+    <div
+      role="alert"
+      className="animate-fadeUp flex flex-col gap-4 rounded-lg border border-danger/30 bg-danger-soft px-5 py-4 sm:flex-row sm:items-start sm:justify-between"
+    >
       <div>
         <p className="text-sm font-medium text-text-primary">Processing failed</p>
         <p className="mt-1 text-sm text-text-secondary">{message}</p>

@@ -8,8 +8,8 @@ export default function ClipCard({ clip, sourceDurationSeconds, onGenerate, onOp
 
   return (
     <article
-      className={`animate-fadeUp flex flex-col overflow-hidden rounded-lg border bg-ink-850 ${
-        isTopPick ? 'border-accent/50' : 'border-ink-600'
+      className={`animate-fadeUp flex flex-col overflow-hidden rounded-lg border bg-ink-850 transition-colors ${
+        isTopPick ? 'border-premium/40' : 'border-ink-600 hover:border-ink-500'
       }`}
     >
       <ClipMedia
@@ -19,16 +19,19 @@ export default function ClipCard({ clip, sourceDurationSeconds, onGenerate, onOp
       />
 
       <div className="flex flex-1 flex-col p-5">
-        {isTopPick && (
-          <p className="mb-2 font-mono text-[11px] font-medium uppercase tracking-wider text-accent">
-            Top pick
-          </p>
-        )}
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-[15px] font-medium leading-snug text-text-primary">
-            {clip.title}
-          </h3>
-          <span className="shrink-0 rounded-sm border border-ink-600 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+          <div className="min-w-0">
+            {isTopPick && (
+              <p className="mb-1 flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-premium">
+                <span className="h-1 w-1 rounded-full bg-premium" aria-hidden="true" />
+                Top pick
+              </p>
+            )}
+            <h3 className="truncate font-display text-[15px] font-medium leading-snug text-text-primary">
+              {clip.title}
+            </h3>
+          </div>
+          <span className="max-w-[40%] shrink-0 truncate rounded-sm border border-ink-600 px-2 py-0.5 font-mono text-[11px] text-text-secondary">
             {clip.visualEvent}
           </span>
         </div>
@@ -61,6 +64,7 @@ function ClipMedia({ clip, sourceDurationSeconds, onOpenPreview }) {
       <button
         type="button"
         onClick={() => onOpenPreview(clip)}
+        aria-label={`Play preview: ${clip.title}`}
         className="group relative aspect-video w-full bg-black"
       >
         <video
@@ -72,7 +76,7 @@ function ClipMedia({ clip, sourceDurationSeconds, onOpenPreview }) {
         />
         <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 opacity-0 transition-opacity group-hover:opacity-100">
-            <svg viewBox="0 0 16 16" className="ml-0.5 h-4 w-4" fill="#0B0C0E">
+            <svg viewBox="0 0 16 16" className="ml-0.5 h-4 w-4" fill="#090A0D">
               <path d="M4 2.5v11l9-5.5-9-5.5z" />
             </svg>
           </span>
@@ -93,13 +97,27 @@ function ClipMedia({ clip, sourceDurationSeconds, onOpenPreview }) {
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-8">
         {clip.status === 'error' ? (
           <ErrorGlyph className="h-6 w-6 text-danger" />
+        ) : clip.status === 'generating' ? (
+          <div className="flex flex-col items-center gap-3">
+            <span className="flex items-center gap-2 font-mono text-xs text-text-secondary">
+              <span className="h-1.5 w-1.5 animate-pulseDot rounded-full bg-accent" />
+              Rendering with FFmpeg…
+            </span>
+            <PositionBar
+              startSeconds={clip.startSeconds}
+              endSeconds={clip.endSeconds}
+              visualEventTime={clip.visualEventTime}
+              sourceDurationSeconds={sourceDurationSeconds}
+              muted
+              hideLabel
+            />
+          </div>
         ) : (
           <PositionBar
             startSeconds={clip.startSeconds}
             endSeconds={clip.endSeconds}
             visualEventTime={clip.visualEventTime}
             sourceDurationSeconds={sourceDurationSeconds}
-            muted={clip.status === 'generating'}
           />
         )}
       </div>
@@ -107,7 +125,14 @@ function ClipMedia({ clip, sourceDurationSeconds, onOpenPreview }) {
   );
 }
 
-function PositionBar({ startSeconds, endSeconds, visualEventTime, sourceDurationSeconds, muted }) {
+function PositionBar({
+  startSeconds,
+  endSeconds,
+  visualEventTime,
+  sourceDurationSeconds,
+  muted = false,
+  hideLabel = false,
+}) {
   const total = Math.max(sourceDurationSeconds, endSeconds);
   const left = (startSeconds / total) * 100;
   const width = Math.max(((endSeconds - startSeconds) / total) * 100, 1.5);
@@ -129,9 +154,11 @@ function PositionBar({ startSeconds, endSeconds, visualEventTime, sourceDuration
           />
         )}
       </div>
-      <p className="mt-3 text-center font-mono text-[11px] text-text-tertiary">
-        position in source video
-      </p>
+      {!hideLabel && (
+        <p className="mt-3 text-center font-mono text-[11px] text-text-tertiary">
+          position in source video
+        </p>
+      )}
     </div>
   );
 }
@@ -143,14 +170,14 @@ function ClipAction({ clip, onGenerate, onOpenPreview }) {
         <a
           href={clip.downloadUrl}
           download
-          className="flex-1 rounded-sm bg-accent px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-accent/90"
+          className="flex-1 rounded-sm bg-accent px-4 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-accent-hover"
         >
           Download clip
         </a>
         <button
           type="button"
           onClick={() => onOpenPreview(clip)}
-          className="rounded-sm border border-ink-600 px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:border-ink-500 hover:bg-ink-800"
+          className="rounded-sm border border-ink-600 bg-ink-800 px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:border-ink-500"
         >
           Open preview
         </button>
@@ -163,10 +190,11 @@ function ClipAction({ clip, onGenerate, onOpenPreview }) {
       <button
         type="button"
         disabled
+        aria-live="polite"
         className="flex w-full items-center justify-center gap-2 rounded-sm border border-ink-600 bg-ink-800 px-4 py-2.5 text-sm font-medium text-text-secondary"
       >
-        <span className="h-3.5 w-3.5 animate-spin rounded-full border-[1.5px] border-text-tertiary border-t-transparent" />
-        Generating clip…
+        <span className="h-1.5 w-1.5 animate-pulseDot rounded-full bg-accent" />
+        Rendering clip…
       </button>
     );
   }
@@ -190,7 +218,7 @@ function ClipAction({ clip, onGenerate, onOpenPreview }) {
     <button
       type="button"
       onClick={() => onGenerate(clip.id)}
-      className="w-full rounded-sm bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+      className="w-full rounded-sm bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
     >
       Generate clip
     </button>

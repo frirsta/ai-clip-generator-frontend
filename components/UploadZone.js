@@ -51,7 +51,7 @@ export default function UploadZone({ file, onFileSelected, onAnalyze, onClear })
         <button
           type="button"
           onClick={onAnalyze}
-          className="mt-6 w-full rounded-sm bg-accent px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-accent/90 focus-visible:outline-accent"
+          className="mt-6 w-full rounded-sm bg-accent px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline-accent"
         >
           Analyze video
         </button>
@@ -67,30 +67,29 @@ export default function UploadZone({ file, onFileSelected, onAnalyze, onClear })
       }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`rounded-lg border border-dashed p-14 text-center transition-colors ${
-        isDragging ? 'border-accent bg-accent/[0.04]' : 'border-ink-600 bg-ink-850/60'
+      className={`rounded-lg border border-dashed p-10 text-center transition-colors sm:p-20 ${
+        isDragging ? 'border-accent bg-accent/[0.05]' : 'border-ink-600 bg-ink-850/60'
       }`}
     >
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-ink-600">
-        <UploadGlyph className="h-4 w-4 text-text-secondary" />
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-ink-600">
+        <UploadGlyph className="h-5 w-5 text-text-secondary" />
       </div>
 
-      <h2 className="mt-5 font-display text-lg font-medium text-text-primary">
-        Drop a video to find its best clips
-      </h2>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-text-secondary">
-        Upload a long-form video. The AI finds the strongest short-form moments
-        for you to review.
+      <h1 className="mt-6 font-display text-2xl font-medium text-text-primary sm:text-[28px]">
+        Turn your long video into clips
+      </h1>
+      <p className="mx-auto mt-3 max-w-sm text-sm text-text-secondary">
+        Upload a video and let AI find the moments worth sharing.
       </p>
 
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="mt-6 rounded-sm border border-ink-600 bg-ink-800 px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:border-ink-500 hover:bg-ink-700"
+        className="mt-8 rounded-sm bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
       >
-        Choose a file
+        Choose video
       </button>
-      <p className="mt-3 font-mono text-xs text-text-tertiary">MP4, MOV, WEBM, MKV</p>
+      <p className="mt-4 font-mono text-xs text-text-tertiary">MP4 · MOV · WEBM · MKV</p>
 
       <input
         ref={inputRef}

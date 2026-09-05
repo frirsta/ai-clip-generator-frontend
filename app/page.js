@@ -11,6 +11,12 @@ import { processVideo, generateClip, PROCESSING_STEPS } from '@/lib/api';
 
 const STEP_ORDER = PROCESSING_STEPS.map((step) => step.id);
 
+const HOW_IT_WORKS = [
+  { number: '01', title: 'Analyze', description: 'AI understands your video' },
+  { number: '02', title: 'Discover', description: 'Find moments worth sharing' },
+  { number: '03', title: 'Clip', description: 'Create ready-to-share clips' },
+];
+
 // 'upload' → 'processing' → 'results'
 export default function Page() {
   const [phase, setPhase] = useState('upload');
@@ -112,12 +118,12 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-ink-950">
+    <div className="min-h-screen">
       <TopBar />
 
-      <main className="mx-auto max-w-5xl px-6 py-12">
+      <main className="mx-auto max-w-5xl px-6 py-10 sm:py-16">
         {phase === 'upload' && (
-          <div className="mx-auto flex max-w-xl flex-col gap-5">
+          <div className="mx-auto flex max-w-2xl flex-col gap-5">
             {pipelineError && (
               <ErrorBanner
                 message={pipelineError}
@@ -131,6 +137,27 @@ export default function Page() {
               onAnalyze={handleAnalyze}
               onClear={handleClearFile}
             />
+
+            {!file && (
+              <div className="mt-6 grid grid-cols-1 divide-y divide-ink-700 sm:grid-cols-3 sm:divide-y-0 sm:divide-x">
+                {HOW_IT_WORKS.map((step) => (
+                  <div
+                    key={step.number}
+                    className="flex items-start gap-4 py-5 sm:flex-col sm:gap-2 sm:px-6 sm:py-0 sm:first:pl-0 sm:last:pr-0"
+                  >
+                    <span className="tnum font-mono text-xs text-text-tertiary">
+                      {step.number}
+                    </span>
+                    <div>
+                      <p className="font-display text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                        {step.title}
+                      </p>
+                      <p className="mt-1 text-sm text-text-tertiary">{step.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
