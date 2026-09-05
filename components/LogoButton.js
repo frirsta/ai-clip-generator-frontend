@@ -1,4 +1,4 @@
-export default function LogoButton() {
+export default function LogoButton({ className = 'h-6 w-6 text-accent', ...props }) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -8,7 +8,8 @@ export default function LogoButton() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6 text-accent"
+            className={className}
+            {...props}
         >
             <path d="M12 2L2 7l10 5 10-5-10-5z" />
             <path d="M2 17l10 5 10-5" />

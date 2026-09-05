@@ -152,7 +152,7 @@ export default function Page() {
                       <p className="font-display text-xs font-semibold uppercase tracking-wider text-text-secondary">
                         {step.title}
                       </p>
-                      <p className="mt-1 text-sm text-text-tertiary">{step.description}</p>
+                      <p className="mt-1 text-sm text-text-secondary/70">{step.description}</p>
                     </div>
                   </div>
                 ))}

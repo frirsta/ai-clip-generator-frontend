@@ -67,7 +67,7 @@ export default function UploadZone({ file, onFileSelected, onAnalyze, onClear })
       }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`rounded-lg border border-dashed p-10 text-center transition-colors sm:p-20 ${
+      className={`rounded-lg border border-dashed p-10 text-center transition-colors sm:p-14 ${
         isDragging ? 'border-accent bg-accent/[0.05]' : 'border-ink-600 bg-ink-850/60'
       }`}
     >
